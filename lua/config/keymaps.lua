@@ -15,7 +15,7 @@ map("i", "jj", "<Esc>", { desc = "Exit insert mode" })
 map("n", "<C-s>", function()
 	-- Format if it's a C file
 	if vim.bo.filetype == "c" then
-		require("conform").format({ timeout_ms = 3000, lsp_fallback = true })
+		require("conform").format({ timeout_ms = 5000, lsp_fallback = true })
 	end
 	vim.cmd("write")
 end, { desc = "Format & Save" })
@@ -25,7 +25,7 @@ map("i", "<C-s>", function()
 	vim.cmd("stopinsert")
 	-- Format if it's a C file
 	if vim.bo.filetype == "c" then
-		require("conform").format({ timeout_ms = 3000, lsp_fallback = true })
+		require("conform").format({ timeout_ms = 5000, lsp_fallback = true })
 	end
 	vim.cmd("write")
 end, { desc = "Format & Save" })
@@ -73,6 +73,14 @@ end, { desc = "Format (42 norm)" })
 map("n", "<leader>cl", function()
   require("lint").try_lint()
 end, { desc = "Lint (norminette)" })
+
+-- ┌────────────────────────────────────────────────────────────────────────┐
+-- │                         LSP Keymaps                                    │
+-- └────────────────────────────────────────────────────────────────────────┘
+
+map("n", "<leader>ca", vim.lsp.buf.code_action, { desc = "Code actions" })
+map("n", "<leader>rn", vim.lsp.buf.rename, { desc = "Rename symbol" })
+map("n", "gd", vim.lsp.buf.definition, { desc = "Go to definition" })
 
 -- ┌────────────────────────────────────────────────────────────────────────┐
 -- │                         Better Editing                                 │

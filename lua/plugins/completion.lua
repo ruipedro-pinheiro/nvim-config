@@ -4,7 +4,7 @@ return {
     opts = {
       sources = {
         default = function()
-          return { "buffer", "path" }
+          return { "lsp", "path" }
         end,
         transform_items = function(_, items)
           return vim.tbl_filter(function(item)

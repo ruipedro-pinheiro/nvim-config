@@ -21,7 +21,7 @@ local function run_norminette()
   vim.diagnostic.reset(norminette_ns, bufnr)
 
   -- Run norminette
-  vim.fn.jobstart({ "norminette", "--no-colors", filepath }, {
+  local job_id = vim.fn.jobstart({ "norminette", "--no-colors", filepath }, {
     stdout_buffered = true,
     on_stdout = function(_, data)
       if not data then return end
@@ -62,7 +62,22 @@ local function run_norminette()
       -- Set diagnostics
       vim.diagnostic.set(norminette_ns, bufnr, diagnostics)
     end,
+    on_stderr = function(_, data)
+      if data and data[1] ~= "" then
+        vim.notify("norminette error: " .. table.concat(data, "\n"), vim.log.levels.WARN)
+      end
+    end,
   })
+
+  -- Timeout: kill norminette if it hangs (10 seconds)
+  if job_id > 0 then
+    vim.defer_fn(function()
+      if vim.fn.jobwait({ job_id }, 0)[1] == -1 then
+        vim.fn.jobstop(job_id)
+        vim.notify("norminette timed out", vim.log.levels.WARN)
+      end
+    end, 10000)
+  end
 end
 
 augroup("NorminetteLint", { clear = true })
@@ -73,21 +88,6 @@ autocmd({ "BufWritePost", "BufReadPost" }, {
     if vim.fn.executable("norminette") == 1 then
       run_norminette()
     end
-  end,
-})
-
--- ┌────────────────────────────────────────────────────────────────────────┐
--- │                         C file settings                                │
--- └────────────────────────────────────────────────────────────────────────┘
-augroup("CFileSettings", { clear = true })
-autocmd("FileType", {
-  group = "CFileSettings",
-  pattern = { "c", "h" },
-  callback = function()
-    -- 42 norm: tabs, not spaces
-    vim.opt_local.expandtab = false
-    vim.opt_local.tabstop = 4
-    vim.opt_local.shiftwidth = 4
   end,
 })
 
@@ -111,6 +111,29 @@ autocmd("VimResized", {
   callback = function()
     vim.cmd("tabdo wincmd =")
   end,
+})
+
+-- ┌────────────────────────────────────────────────────────────────────────┐
+-- │                      LSP hover on mouse                                │
+-- └────────────────────────────────────────────────────────────────────────┘
+augroup("MouseHover", { clear = true })
+autocmd("LspAttach", {
+	group = "MouseHover",
+	callback = function(args)
+		vim.o.mousemoveevent = true
+		autocmd("CursorHold", {
+			group = "MouseHover",
+			buffer = args.buf,
+			callback = function()
+				local line = vim.api.nvim_get_current_line()
+				local col = vim.api.nvim_win_get_cursor(0)[2]
+				local char = line:sub(col + 1, col + 1)
+				if char:match("[%w_]") then
+					vim.lsp.buf.hover({ border = "rounded", max_width = 80, max_height = 20 })
+				end
+			end,
+		})
+	end,
 })
 
 -- ┌────────────────────────────────────────────────────────────────────────┐

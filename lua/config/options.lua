@@ -53,3 +53,12 @@ vim.opt.guifont = "MonaspiceAr Nerd Font Mono:h12"
 vim.opt.updatetime = 500
 vim.opt.autowrite = true
 vim.opt.autowriteall = true
+
+-- Float window colors (Catppuccin Mocha Mauve)
+vim.api.nvim_create_autocmd("ColorScheme", {
+	pattern = "*",
+	callback = function()
+		vim.api.nvim_set_hl(0, "NormalFloat", { bg = "#1e1e2e", fg = "#cdd6f4" })
+		vim.api.nvim_set_hl(0, "FloatBorder", { bg = "#1e1e2e", fg = "#cba6f7" })
+	end,
+})
