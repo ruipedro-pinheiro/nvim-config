@@ -40,6 +40,8 @@ return {
       highlight_overrides = {
         mocha = function(colors)
           return {
+            FloatBorder = { fg = colors.mauve },
+            NormalFloat = { bg = colors.mantle, fg = colors.text },
             CursorLineNr = { fg = colors.mauve, bold = true },
             TelescopeSelectionCaret = { fg = colors.mauve },
             TelescopePromptPrefix = { fg = colors.mauve },

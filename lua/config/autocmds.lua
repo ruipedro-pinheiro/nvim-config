@@ -120,7 +120,6 @@ augroup("MouseHover", { clear = true })
 autocmd("LspAttach", {
 	group = "MouseHover",
 	callback = function(args)
-		vim.o.mousemoveevent = true
 		autocmd("CursorHold", {
 			group = "MouseHover",
 			buffer = args.buf,
@@ -133,6 +132,17 @@ autocmd("LspAttach", {
 				end
 			end,
 		})
+	end,
+})
+autocmd("CmdlineEnter", {
+	group = "MouseHover",
+	callback = function()
+		local wins = vim.api.nvim_list_wins()
+		for _, win in ipairs(wins) do
+			if vim.api.nvim_win_get_config(win).relative ~= "" then
+				vim.api.nvim_win_close(win, true)
+			end
+		end
 	end,
 })
 

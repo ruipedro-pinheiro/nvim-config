@@ -54,6 +54,14 @@ vim.opt.updatetime = 500
 vim.opt.autowrite = true
 vim.opt.autowriteall = true
 
+-- Diagnostic floats avec bordures
+vim.diagnostic.config({
+	float = { border = "rounded" }
+})
+
+-- Rounded borders on all float windows (Neovim 0.11+)
+vim.o.winborder = "rounded"
+
 -- Float window colors (Catppuccin Mocha Mauve)
 vim.api.nvim_create_autocmd("ColorScheme", {
 	pattern = "*",
@@ -62,3 +70,4 @@ vim.api.nvim_create_autocmd("ColorScheme", {
 		vim.api.nvim_set_hl(0, "FloatBorder", { bg = "#1e1e2e", fg = "#cba6f7" })
 	end,
 })
+
