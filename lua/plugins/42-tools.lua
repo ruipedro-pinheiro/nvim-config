@@ -64,7 +64,7 @@ return {
       default_map = true,
       auto_update = true,
       user = "rpinheir",
-      mail = "rpinhier@student.42Lausanne.ch",
+      mail = "rpinheir@student.42lausanne.ch",
       asciiart = {
         "        :::      ::::::::",
         "      :+:      :+:    :+:",

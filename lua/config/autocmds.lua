@@ -114,36 +114,20 @@ autocmd("VimResized", {
 })
 
 -- ┌────────────────────────────────────────────────────────────────────────┐
--- │                      LSP hover on mouse                                │
+-- │                      42 filetype settings (C/H)                        │
 -- └────────────────────────────────────────────────────────────────────────┘
-augroup("MouseHover", { clear = true })
-autocmd("LspAttach", {
-	group = "MouseHover",
-	callback = function(args)
-		autocmd("CursorHold", {
-			group = "MouseHover",
-			buffer = args.buf,
-			callback = function()
-				local line = vim.api.nvim_get_current_line()
-				local col = vim.api.nvim_win_get_cursor(0)[2]
-				local char = line:sub(col + 1, col + 1)
-				if char:match("[%w_]") then
-					vim.lsp.buf.hover({ border = "rounded", max_width = 80, max_height = 20 })
-				end
-			end,
-		})
-	end,
-})
-autocmd("CmdlineEnter", {
-	group = "MouseHover",
-	callback = function()
-		local wins = vim.api.nvim_list_wins()
-		for _, win in ipairs(wins) do
-			if vim.api.nvim_win_get_config(win).relative ~= "" then
-				vim.api.nvim_win_close(win, true)
-			end
-		end
-	end,
+augroup("FortyTwoIndent", { clear = true })
+autocmd("FileType", {
+  group = "FortyTwoIndent",
+  pattern = { "c", "cpp" },
+  callback = function()
+    vim.opt_local.expandtab = false
+    vim.opt_local.tabstop = 4
+    vim.opt_local.shiftwidth = 4
+    vim.opt_local.softtabstop = 4
+    vim.opt_local.colorcolumn = "80"
+    vim.api.nvim_set_hl(0, "ColorColumn", { bg = "#313244" })
+  end,
 })
 
 -- ┌────────────────────────────────────────────────────────────────────────┐

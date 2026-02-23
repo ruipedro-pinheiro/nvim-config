@@ -5,11 +5,11 @@
 vim.opt.relativenumber = true
 vim.opt.number = true
 
--- Tabs (42 norm = tabs, not spaces)
+-- Tabs (default: spaces — C/H override en autocmds.lua)
 vim.opt.tabstop = 4
 vim.opt.shiftwidth = 4
 vim.opt.softtabstop = 4
-vim.opt.expandtab = false -- Use tabs, not spaces (42 norm)
+vim.opt.expandtab = true
 
 -- Search
 vim.opt.ignorecase = true
@@ -32,27 +32,15 @@ vim.opt.undofile = true
 vim.opt.splitright = true
 vim.opt.splitbelow = true
 
--- 42 Norm: 80 column indicator (subtle)
-vim.opt.colorcolumn = "80"
+-- Timing
+vim.opt.updatetime = 500
 
--- Set subtle colorcolumn color (Catppuccin Surface0)
-vim.api.nvim_create_autocmd("ColorScheme", {
-  pattern = "*",
-  callback = function()
-    vim.api.nvim_set_hl(0, "ColorColumn", { bg = "#313244" }) -- Catppuccin Mocha Surface0
-  end,
-})
-
--- Clipboard (system clipboard)
-vim.opt.clipboard = "unnamedplus"
+-- Disable auto-save (LazyVim default) — Pedro saves with <C-s>
+vim.opt.autowrite = false
+vim.opt.autowriteall = false
 
 -- GUI font (Monaspace Argon Nerd Font)
 vim.opt.guifont = "MonaspiceAr Nerd Font Mono:h12"
-
--- Auto-save (like VS Code)
-vim.opt.updatetime = 500
-vim.opt.autowrite = true
-vim.opt.autowriteall = true
 
 -- Diagnostic floats avec bordures
 vim.diagnostic.config({
@@ -70,4 +58,3 @@ vim.api.nvim_create_autocmd("ColorScheme", {
 		vim.api.nvim_set_hl(0, "FloatBorder", { bg = "#1e1e2e", fg = "#cba6f7" })
 	end,
 })
-
