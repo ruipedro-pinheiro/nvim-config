@@ -1,5 +1,8 @@
 -- Keymaps are automatically loaded on the VeryLazy event
 -- Default keymaps: https://github.com/LazyVim/LazyVim/blob/main/lua/lazyvim/config/keymaps.lua
+--
+-- LazyVim already provides: <C-s> save, <leader>qq quit, <leader>cf format,
+-- <leader>gg lazygit, <leader>ft terminal, buffer navigation, etc.
 
 local map = vim.keymap.set
 
@@ -11,51 +14,24 @@ local map = vim.keymap.set
 map("i", "jk", "<Esc>", { desc = "Exit insert mode" })
 map("i", "jj", "<Esc>", { desc = "Exit insert mode" })
 
--- Save (with auto-format for C files)
-map("n", "<C-s>", function()
-	-- Format if it's a C file
-	if vim.bo.filetype == "c" then
-		require("conform").format({ timeout_ms = 5000, lsp_fallback = true })
-	end
-	vim.cmd("write")
-end, { desc = "Format & Save" })
-
-map("i", "<C-s>", function()
-	-- Exit insert mode first
-	vim.cmd("stopinsert")
-	-- Format if it's a C file
-	if vim.bo.filetype == "c" then
-		require("conform").format({ timeout_ms = 5000, lsp_fallback = true })
-	end
-	vim.cmd("write")
-end, { desc = "Format & Save" })
-
--- Quit
-map("n", "<leader>q", "<cmd>q<cr>", { desc = "Quit" })
+-- Force quit all
 map("n", "<leader>Q", "<cmd>qa!<cr>", { desc = "Quit all (force)" })
 
 -- ┌────────────────────────────────────────────────────────────────────────┐
 -- │                         System Clipboard                               │
 -- └────────────────────────────────────────────────────────────────────────┘
 
-map({"n", "v"}, "<leader>y", '"+y', { desc = "Yank to clipboard" })
+map({ "n", "v" }, "<leader>y", '"+y', { desc = "Yank to clipboard" })
 map("n", "<leader>Y", '"+Y', { desc = "Yank line to clipboard" })
-map({"n", "v"}, "<leader>p", '"+p', { desc = "Paste from clipboard" })
-map({"n", "v"}, "<leader>P", '"+P', { desc = "Paste before from clipboard" })
+map({ "n", "v" }, "<leader>p", '"+p', { desc = "Paste from clipboard" })
+map({ "n", "v" }, "<leader>P", '"+P', { desc = "Paste before from clipboard" })
 
 -- ┌────────────────────────────────────────────────────────────────────────┐
 -- │                         Code Actions (42)                              │
 -- └────────────────────────────────────────────────────────────────────────┘
 
--- Format with c_formatter_42
-map("n", "<leader>cf", function()
-  require("conform").format({ async = true, lsp_fallback = true })
-end, { desc = "Format (42 norm)" })
-
--- Lint with norminette
-map("n", "<leader>cl", function()
-  require("lint").try_lint()
-end, { desc = "Lint (norminette)" })
+-- Manual norminette trigger (auto-runs on save via autocmd)
+map("n", "<leader>cn", "<cmd>Norminette<cr>", { desc = "Norminette" })
 
 -- ┌────────────────────────────────────────────────────────────────────────┐
 -- │                         Better Editing                                 │
@@ -74,19 +50,47 @@ map("n", "N", "Nzzzv", { desc = "Previous search centered" })
 -- │                         Terminal                                       │
 -- └────────────────────────────────────────────────────────────────────────┘
 
-map("n", "<leader>tt", "<cmd>terminal<cr>", { desc = "Open terminal" })
 map("t", "<Esc><Esc>", "<C-\\><C-n>", { desc = "Exit terminal mode" })
 
 -- ┌────────────────────────────────────────────────────────────────────────┐
--- │                         Quick Actions                                  │
+-- │                     Quick Actions (42 - async)                         │
 -- └────────────────────────────────────────────────────────────────────────┘
 
--- Compile C file
-map("n", "<F5>", "<cmd>!cc -Wall -Werror -Wextra % -o %:r<cr>", { desc = "Compile C file" })
+local function async_cmd(cmd, label)
+  vim.notify(label .. "...", vim.log.levels.INFO)
+  vim.fn.jobstart(cmd, {
+    cwd = vim.fn.getcwd(),
+    stderr_buffered = true,
+    on_stderr = function(_, data)
+      if data and data[1] ~= "" then
+        vim.schedule(function()
+          vim.notify(table.concat(data, "\n"), vim.log.levels.ERROR)
+        end)
+      end
+    end,
+    on_exit = function(_, code)
+      vim.schedule(function()
+        if code == 0 then
+          vim.notify(label .. ": OK", vim.log.levels.INFO)
+        else
+          vim.notify(label .. ": FAILED (exit " .. code .. ")", vim.log.levels.ERROR)
+        end
+      end)
+    end,
+  })
+end
 
--- Run compiled file
-map("n", "<F6>", "<cmd>!./%:r<cr>", { desc = "Run compiled file" })
+-- Compile C file (async, non-blocking — old version froze nvim with !)
+map("n", "<F5>", function()
+  vim.cmd("write")
+  async_cmd({ "cc", "-Wall", "-Werror", "-Wextra", vim.fn.expand("%"), "-o", vim.fn.expand("%:r") }, "Compile")
+end, { desc = "Compile C file" })
 
--- Make
-map("n", "<F7>", "<cmd>!make<cr>", { desc = "Run make" })
-map("n", "<F8>", "<cmd>!make re<cr>", { desc = "Run make re" })
+-- Run compiled file (in terminal split)
+map("n", "<F6>", function()
+  vim.cmd("split | terminal ./" .. vim.fn.expand("%:r"))
+end, { desc = "Run compiled file" })
+
+-- Make (async)
+map("n", "<F7>", function() async_cmd({ "make" }, "make") end, { desc = "Run make" })
+map("n", "<F8>", function() async_cmd({ "make", "re" }, "make re") end, { desc = "Run make re" })

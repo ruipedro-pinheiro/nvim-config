@@ -1,5 +1,8 @@
 -- Autocmds are automatically loaded on the VeryLazy event
 -- Default autocmds: https://github.com/LazyVim/LazyVim/blob/main/lua/lazyvim/config/autocmds.lua
+--
+-- LazyVim already provides: highlight_yank, resize_splits, last_loc,
+-- close_with_q, checktime, wrap_spell, auto_create_dir, etc.
 
 local augroup = vim.api.nvim_create_augroup
 local autocmd = vim.api.nvim_create_autocmd
@@ -17,24 +20,23 @@ local function run_norminette()
     return
   end
 
-  -- Clear previous diagnostics
   vim.diagnostic.reset(norminette_ns, bufnr)
 
-  -- Run norminette
   local job_id = vim.fn.jobstart({ "norminette", "--no-colors", filepath }, {
     stdout_buffered = true,
     on_stdout = function(_, data)
-      if not data then return end
+      if not data then
+        return
+      end
 
       local diagnostics = {}
       local ignore_errors = { "WRONG_SCOPE_COMMENT" }
 
       for _, line in ipairs(data) do
-        -- Parse norminette output: Error: CODE (line: X, col: Y): message
         local code, lnum, col, msg = line:match("Error:%s*(%w+)%s*%(line:%s*(%d+),?%s*col:%s*(%d+)%):%s*(.*)")
         if not lnum then
           code, lnum, msg = line:match("Error:%s*(%w+)%s*%(line:%s*(%d+)%):%s*(.*)")
-          col = 1
+          col = "1"
         end
 
         if lnum and code then
@@ -50,7 +52,7 @@ local function run_norminette()
             table.insert(diagnostics, {
               bufnr = bufnr,
               lnum = tonumber(lnum) - 1,
-              col = tonumber(col) - 1 or 0,
+              col = math.max(0, tonumber(col) - 1),
               severity = vim.diagnostic.severity.WARN,
               source = "norminette",
               message = code .. (msg and (": " .. msg) or ""),
@@ -59,7 +61,6 @@ local function run_norminette()
         end
       end
 
-      -- Set diagnostics
       vim.diagnostic.set(norminette_ns, bufnr, diagnostics)
     end,
     on_stderr = function(_, data)
@@ -80,6 +81,9 @@ local function run_norminette()
   end
 end
 
+-- User command for manual trigger (keymap: <leader>cn)
+vim.api.nvim_create_user_command("Norminette", run_norminette, {})
+
 augroup("NorminetteLint", { clear = true })
 autocmd({ "BufWritePost", "BufReadPost" }, {
   group = "NorminetteLint",
@@ -88,28 +92,6 @@ autocmd({ "BufWritePost", "BufReadPost" }, {
     if vim.fn.executable("norminette") == 1 then
       run_norminette()
     end
-  end,
-})
-
--- ┌────────────────────────────────────────────────────────────────────────┐
--- │                      Highlight on yank                                 │
--- └────────────────────────────────────────────────────────────────────────┘
-augroup("HighlightYank", { clear = true })
-autocmd("TextYankPost", {
-  group = "HighlightYank",
-  callback = function()
-    vim.highlight.on_yank({ higroup = "Visual", timeout = 200 })
-  end,
-})
-
--- ┌────────────────────────────────────────────────────────────────────────┐
--- │                      Auto-resize splits                                │
--- └────────────────────────────────────────────────────────────────────────┘
-augroup("AutoResize", { clear = true })
-autocmd("VimResized", {
-  group = "AutoResize",
-  callback = function()
-    vim.cmd("tabdo wincmd =")
   end,
 })
 
@@ -126,7 +108,6 @@ autocmd("FileType", {
     vim.opt_local.shiftwidth = 4
     vim.opt_local.softtabstop = 4
     vim.opt_local.colorcolumn = "80"
-    vim.api.nvim_set_hl(0, "ColorColumn", { bg = "#313244" })
   end,
 })
 
