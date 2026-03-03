@@ -27,8 +27,10 @@ return {
       on_attach = function(bufnr)
         local gs = package.loaded.gitsigns
 
-        local function map(mode, l, r, desc)
-          vim.keymap.set(mode, l, r, { buffer = bufnr, desc = desc })
+        local function map(mode, l, r, opts)
+          opts = opts or {}
+          opts.buffer = bufnr
+          vim.keymap.set(mode, l, r, opts)
         end
 
         -- Navigation
@@ -40,7 +42,7 @@ return {
             gs.next_hunk()
           end)
           return "<Ignore>"
-        end, "Next git hunk")
+        end, { expr = true, desc = "Next git hunk" })
 
         map("n", "[c", function()
           if vim.wo.diff then
@@ -50,31 +52,31 @@ return {
             gs.prev_hunk()
           end)
           return "<Ignore>"
-        end, "Previous git hunk")
+        end, { expr = true, desc = "Previous git hunk" })
 
         -- Actions
-        map("n", "<leader>hs", gs.stage_hunk, "Stage hunk")
-        map("n", "<leader>hr", gs.reset_hunk, "Reset hunk")
+        map("n", "<leader>hs", gs.stage_hunk, { desc = "Stage hunk" })
+        map("n", "<leader>hr", gs.reset_hunk, { desc = "Reset hunk" })
         map("v", "<leader>hs", function()
           gs.stage_hunk({ vim.fn.line("."), vim.fn.line("v") })
-        end, "Stage hunk")
+        end, { desc = "Stage hunk" })
         map("v", "<leader>hr", function()
           gs.reset_hunk({ vim.fn.line("."), vim.fn.line("v") })
-        end, "Reset hunk")
-        map("n", "<leader>hS", gs.stage_buffer, "Stage buffer")
-        map("n", "<leader>hu", gs.undo_stage_hunk, "Undo stage hunk")
-        map("n", "<leader>hR", gs.reset_buffer, "Reset buffer")
-        map("n", "<leader>hp", gs.preview_hunk, "Preview hunk")
+        end, { desc = "Reset hunk" })
+        map("n", "<leader>hS", gs.stage_buffer, { desc = "Stage buffer" })
+        map("n", "<leader>hu", gs.undo_stage_hunk, { desc = "Undo stage hunk" })
+        map("n", "<leader>hR", gs.reset_buffer, { desc = "Reset buffer" })
+        map("n", "<leader>hp", gs.preview_hunk, { desc = "Preview hunk" })
         map("n", "<leader>hb", function()
           gs.blame_line({ full = true })
-        end, "Blame line")
-        map("n", "<leader>hd", gs.diffthis, "Diff this")
+        end, { desc = "Blame line" })
+        map("n", "<leader>hd", gs.diffthis, { desc = "Diff this" })
         map("n", "<leader>hD", function()
           gs.diffthis("~")
-        end, "Diff this ~")
+        end, { desc = "Diff this ~" })
 
         -- Text object
-        map({ "o", "x" }, "ih", ":<C-U>Gitsigns select_hunk<CR>", "Select hunk")
+        map({ "o", "x" }, "ih", ":<C-U>Gitsigns select_hunk<CR>", { desc = "Select hunk" })
       end,
     },
   },
